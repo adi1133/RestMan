@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html ng-app="RestMan" ng-csp>
+<head>
+	<link rel="stylesheet" type="text/css" href="style.css">
+	<link rel="stylesheet" type="text/css" href="bower_components/bootstrap-css-only/css/bootstrap.min.css">
+	<script src="bower_components/jquery/dist/jquery.min.js"></script>
+	<script src="bower_components/jquery-ui/ui/minified/jquery-ui.min.js"></script>
+	<script src="bower_components/angular/angular.min.js"></script>
+	<script src="bower_components/angular-route/angular-route.min.js"></script>
+	<script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>
+	<script src="bower_components/angular-ui-sortable/sortable.min.js"></script>
+	<script src="app/app.js"></script>
+</head>
+<body ng-controller="MainCtrl">
+	<div class="navbar navbar-default" role="navigation">
+		<div class="container">
+			<div class="navbar-header">
+				<a class="navbar-brand" href="{{manifest.author.website}}" target="_blank">{{manifest.name}}</a>
+				<p class="navbar-text">{{manifest.version}}</p>
+			</div>
+		</div>
+	</div>
+	<div class="container">		
+
+		
+		<h1>Test</h1>
+
+		<div class="input-group">
+			<span class="input-group-addon">Url</span>
+			<input type="text" ng-model="url" class="form-control"> 			
+			<span class="input-group-btn">
+				<button class="btn btn-primary" ng-click="send()">Send!</button>
+			</span>
+		</div>
+		<div class="input-group">
+			<span class="input-group-addon">Method</span>
+			<select  ng-model="method" class="form-control" >
+				<option>GET</option>
+				<option>POST</option>
+				<option>HEAD</option>
+			</select>
+			<span class="input-group-btn">
+				<button class="btn btn-primary" ng-click="send()">Send!</button>
+			</span>
+		</div>
+
+		<br>
+		Jquery version : {{jquery}}<br>
+		Select : {{method}}
+		<hr>
+		<table class="table table-bordered">
+			<thead>
+				<tr>
+					<th>Key</th>
+					<th>Value</th>
+				</tr>
+			</thead>
+			<tbody ui-sortable="{handle: '.handle'}" ng-model="query">
+				<tr ng-repeat="parameter in query" class="item">
+					<td><input type="text" ng-model="parameter.name"></td>
+					<td><input type="text" ng-model="parameter.value"></td>
+					<td ng-click="query.splice($index,1)">remove</td>
+					<td class="handle">handle</td>
+				</tr>
+			</tbody>{{query}}
+		</table>
+		<hr>
+
+		<table class="table table-striped table-condensed table-hover">
+
+			<tr ng-repeat="(header, value) in headers">
+				<td><a popover="On the Top!" popover-trigger="mouseenter">{{header}}</a></td>
+				<td>{{value}}</td>
+			</tr>
+		</table>
+	</div>
+</body>
+</html>
+
+

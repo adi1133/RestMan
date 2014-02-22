@@ -1,0 +1,20 @@
+{
+	"manifest_version": 2,
+	"name": "RestMan",
+	"description": "Rest implementation inspired by PostMan",
+	"version": "0.1",
+	"author": {
+		"website": "http://www.epb.ro/restman",
+		"name": "Adrian Pascu",
+		"location": "TODO: link location",
+		"email": "adipascubv@gmail.com"
+	},
+
+	"app": {
+		"background": {
+			"scripts": ["background.js"]
+		}
+	},
+
+	"permissions": ["<all_urls>"]
+}
