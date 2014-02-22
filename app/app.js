@@ -26,20 +26,98 @@ RestMan.controller("MainCtrl", ["$scope",
 			value: "b"
 		}];
 
-		$scope.$watch("query", processList, true);
+		$scope.protocol = "http";
+		$scope.host = "www.google.ro";
 
-		function processList(list) {
-			console.log("run");
-			for (var i = 0; i < list.length;) {
-				var current = list[i];
-				if (!current.name && !current.value) {
-					list.splice(i, 1);
-				} else {
-					i++;
+		(function() {
+			var watchQuery;
+			var watchUrl;
+			var watchProtocol;
+			var watchHost;
+			$scope.focus = {
+				query: function() {
+					if (!watchQuery)
+						watchQuery = $scope.$watch("query", processList, true);
+					if (watchUrl) {
+						watchUrl();
+						watchUrl = null;
+					}
+				},
+				url: function() {
+					if (watchQuery) {
+						watchQuery();
+						watchQuery = null;
+					}					
+					if (watchProtocol) {
+						watchProtocol();
+						watchProtocol = null;
+					}
+					if (watchHost) {
+						watchHost();
+						watchHost = null;
+					}
+					if (!watchUrl)
+						watchUrl = $scope.$watch("url", processUrl);
+				},
+				protocol: function(){
+					if(!watchProtocol)
+						watchProtocol = $scope.$watch("protocol", processProtocol);
+				},
+				host: function(){
+					if(!watchHost)
+						watchHost = $scope.$watch("host", processHost);
 				}
+			};
+			$scope.removeQuery = function($index)
+			{
+				$scope.query.splice($index,1);
+				processList($scope.query);
 			}
-			list.push({});
-		}
+
+			function processList(query) {
+				console.log(query);
+				var uri = URI($scope.url).setQuery({});
+				uri.removeQuery(URI.parseQuery(uri.query()));
+				for (var i = 0; i < query.length;) {
+					var current = query[i];
+					if (!current.name && !current.value) {
+						query.splice(i, 1);
+					} else {
+						i++;
+						if(current.name)
+							uri.addQuery(current.name, current.value);
+					}
+				}
+				$scope.url = uri.toString();
+				query.push({});
+			}
+
+			function processUrl(url) {
+				var uri = URI(url);
+				var queryObj = URI.parseQuery(uri.query());
+				$scope.query = [];
+				for (var key in queryObj) {
+					$scope.query.push({
+						name: key,
+						value: queryObj[key]
+					});
+				}
+				$scope.query.push({});
+
+				$scope.protocol =  URI(url).protocol();
+				$scope.host = URI(url).hostname();
+			}
+			function processProtocol(protocol)
+			{
+				$scope.url = URI($scope.url).protocol(protocol).toString();
+			}
+			function processHost(host)
+			{
+				$scope.url = URI($scope.url).hostname(host).toString();
+			}
+		})();
+
+
 
 		$scope.jquery = $().jquery;
 		$scope.headers = [1, 2, 3, 4];
@@ -49,7 +127,6 @@ RestMan.controller("MainCtrl", ["$scope",
 			$.ajax({
 				url: $scope.url,
 				type: $scope.method,
-				data: $scope.query,
 				complete: function(xhr, status) {
 					console.log(xhr);
 					console.log(status);

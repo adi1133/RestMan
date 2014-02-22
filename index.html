@@ -5,6 +5,9 @@
 	<link rel="stylesheet" type="text/css" href="bower_components/bootstrap-css-only/css/bootstrap.min.css">
 	<script src="bower_components/jquery/dist/jquery.min.js"></script>
 	<script src="bower_components/jquery-ui/ui/minified/jquery-ui.min.js"></script>
+
+	<script src="bower_components/URIjs/src/URI.js"></script>
+
 	<script src="bower_components/angular/angular.min.js"></script>
 	<script src="bower_components/angular-route/angular-route.min.js"></script>
 	<script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>
@@ -27,39 +30,51 @@
 
 		<div class="input-group">
 			<span class="input-group-addon">Url</span>
-			<input type="text" ng-model="url" class="form-control"> 			
+			<input type="text" ng-model="url" class="form-control" ng-focus="focus.url()">
 			<span class="input-group-btn">
 				<button class="btn btn-primary" ng-click="send()">Send!</button>
 			</span>
 		</div>
+
+
 		<div class="input-group">
 			<span class="input-group-addon">Method</span>
-			<select  ng-model="method" class="form-control" >
+			<select ng-model="method" class="form-control" >
 				<option>GET</option>
 				<option>POST</option>
 				<option>HEAD</option>
 			</select>
-			<span class="input-group-btn">
-				<button class="btn btn-primary" ng-click="send()">Send!</button>
-			</span>
+		</div>
+
+		<div class="input-group">
+			<span class="input-group-addon">Protocol</span>
+			<select ng-model="protocol" class="form-control" ng-focus="focus.protocol()">
+				<option>http</option>
+				<option>https</option>
+			</select>
+		</div>
+
+		<div class="input-group">
+			<span class="input-group-addon">Domain</span>
+			<input type="text" ng-model="host" class="form-control" ng-focus="focus.host()"> 
 		</div>
 
 		<br>
 		Jquery version : {{jquery}}<br>
 		Select : {{method}}
 		<hr>
-		<table class="table table-bordered">
+		<table class="table table-condensed">
 			<thead>
 				<tr>
 					<th>Key</th>
 					<th>Value</th>
 				</tr>
 			</thead>
-			<tbody ui-sortable="{handle: '.handle'}" ng-model="query">
+			<tbody ui-sortable="{handle: '.handle', start: focus.query()}" ng-model="query">
 				<tr ng-repeat="parameter in query" class="item">
-					<td><input type="text" ng-model="parameter.name"></td>
-					<td><input type="text" ng-model="parameter.value"></td>
-					<td ng-click="query.splice($index,1)">remove</td>
+					<td><input type="text" ng-model="parameter.name"  class="form-control" ng-focus="focus.query()"></td>
+					<td><input type="text" ng-model="parameter.value" class="form-control" ng-focus="focus.query()"></td>
+					<td ng-click="removeQuery($index)">remove</td>
 					<td class="handle">handle</td>
 				</tr>
 			</tbody>{{query}}
