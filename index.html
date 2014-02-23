@@ -32,7 +32,7 @@
 			<span class="input-group-addon">Url</span>
 			<input type="text" ng-model="url" class="form-control" ng-focus="focus.url()">
 			<span class="input-group-btn">
-				<button class="btn btn-primary" ng-click="send()">Send!</button>
+				<button class="btn" ng-class="status.busy ?'btn-danger':'btn-primary'" ng-click="action()">{{status.busy ? "Cancel" : "Send!"}}</button>
 			</span>
 		</div>
 
@@ -43,6 +43,10 @@
 				<option>GET</option>
 				<option>POST</option>
 				<option>HEAD</option>
+				<option>PUT</option>
+				<option>DELETE</option>
+				<option>OPTIONS</option>
+				<option>PATCH</option>
 			</select>
 		</div>
 
@@ -59,9 +63,31 @@
 			<input type="text" ng-model="host" class="form-control" ng-focus="focus.host()"> 
 		</div>
 
-		<br>
-		Jquery version : {{jquery}}<br>
-		Select : {{method}}
+		<div class="input-group">
+			<span class="input-group-addon">Path</span>
+			<input type="text" ng-model="path" class="form-control" ng-focus="focus.path()"> 
+		</div>
+
+		<hr>
+		<div ng-switch="status.busy">
+			<div ng-switch-when="true">
+				<div ng-switch="status.total">
+					<div ng-switch-when="0">
+						<progressbar class="progress-striped active" type="warning" value="1" max="1"></progressbar>
+					</div>
+					<div ng-switch-default>
+						<progressbar class="progress-striped active" type="info" value="status.loaded" max="status.total"></progressbar>						
+					</div>
+			    </div>				
+			</div>
+			<div ng-switch-default>
+				<progressbar type="success" value="1" max="1" animate ="false"><i>200</i></progressbar>						
+			</div>
+	    </div>	    
+		<hr>
+
+		<textarea readonly class="form-control" style="height: 155px;">{{status | json}}</textarea>
+
 		<hr>
 		<table class="table table-condensed">
 			<thead>
@@ -70,16 +96,18 @@
 					<th>Value</th>
 				</tr>
 			</thead>
-			<tbody ui-sortable="{handle: '.handle', start: focus.query()}" ng-model="query">
+			<tbody ui-sortable="{handle: '.handle'}" ng-model="query">
 				<tr ng-repeat="parameter in query" class="item">
 					<td><input type="text" ng-model="parameter.name"  class="form-control" ng-focus="focus.query()"></td>
 					<td><input type="text" ng-model="parameter.value" class="form-control" ng-focus="focus.query()"></td>
 					<td ng-click="removeQuery($index)">remove</td>
 					<td class="handle">handle</td>
 				</tr>
-			</tbody>{{query}}
+			</tbody>
 		</table>
 		<hr>
+
+		<textarea readonly ng-model = "response" class="form-control"></textarea>
 
 		<table class="table table-striped table-condensed table-hover">
 

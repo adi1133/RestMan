@@ -1,16 +1,79 @@
 var RestMan = angular.module("RestMan", ["ui.bootstrap", "ui.sortable"]);
 RestMan.controller("MainCtrl", ["$scope",
 	function($scope) {
-		console.log("controller started");
 		$scope.manifest = chrome.runtime.getManifest();
 
 		$scope.list = ["one", "two", "thre", "four", "five", "six"];
 
 		$scope.method = "HEAD";
-		$scope.send = function() {
-			console.log($scope.url);
-			query($scope.url);
-		}
+
+		$scope.status = {
+			busy: false,
+			loaded: 0,
+			total: 0,
+			code: 0,
+			action: "none"
+		};
+
+		(function() {
+			var xhr;
+			$scope.action = function() {
+				if (xhr)
+					setTimeout(function() {
+						xhr.abort()
+					}, 0);
+				else
+					start();
+			}
+
+			function start() {
+				xhr = new XMLHttpRequest();
+				xhr.open($scope.method, $scope.url);
+
+				xhr.onloadstart = function(event){
+					$scope.status.busy = true;
+					$scope.status.action = "started";
+				}
+
+				xhr.onprogress = function(event) {
+					$scope.status.loaded = event.loaded;
+					if (event.lengthComputable) {
+						$scope.status.total = event.total;
+					} else {
+						$scope.status.total = 0;
+					}
+					$scope.status.code = xhr.status;
+					$scope.$apply();
+
+				}
+				xhr.onerror = function() {
+					$scope.status.action = "error";
+				}
+				xhr.onabort = function() {
+					$scope.status.action = "abort";
+				}
+				xhr.onload = function() {
+					$scope.status.action = "success";
+					$scope.headers = getHeaders(xhr);
+					if (xhr.response.length < 0.1 * 1024 * 1024)
+						$scope.response = xhr.response;
+					else
+						$scope.response = "too big";
+				}
+				xhr.ontimeout = function()
+				{
+					$scope.status = "timeout";
+				}
+				xhr.onloadend = function(event) {
+					$scope.status.busy = false;
+					$scope.status.code = xhr.status;
+					$scope.$apply();
+					xhr = undefined;
+				}
+				xhr.send();
+			}
+		})();
+
 
 		$scope.query = [{
 			name: "a",
@@ -28,12 +91,16 @@ RestMan.controller("MainCtrl", ["$scope",
 
 		$scope.protocol = "http";
 		$scope.host = "www.google.ro";
+		//TODO: add domain / subdomain split
+		//TODO: add path and path prefix split
+		$scope.path = "/";
 
 		(function() {
 			var watchQuery;
 			var watchUrl;
 			var watchProtocol;
 			var watchHost;
+			var watchPath;
 			$scope.focus = {
 				query: function() {
 					if (!watchQuery)
@@ -47,7 +114,7 @@ RestMan.controller("MainCtrl", ["$scope",
 					if (watchQuery) {
 						watchQuery();
 						watchQuery = null;
-					}					
+					}
 					if (watchProtocol) {
 						watchProtocol();
 						watchProtocol = null;
@@ -56,26 +123,32 @@ RestMan.controller("MainCtrl", ["$scope",
 						watchHost();
 						watchHost = null;
 					}
+					if (watchPath) {
+						watchPath();
+						watchPath = null;
+					}
 					if (!watchUrl)
 						watchUrl = $scope.$watch("url", processUrl);
 				},
-				protocol: function(){
-					if(!watchProtocol)
+				protocol: function() {
+					if (!watchProtocol)
 						watchProtocol = $scope.$watch("protocol", processProtocol);
 				},
-				host: function(){
-					if(!watchHost)
+				host: function() {
+					if (!watchHost)
 						watchHost = $scope.$watch("host", processHost);
+				},
+				path: function(){
+					if (!watchPath)
+						watchPath = $scope.$watch("path", processPath);
 				}
 			};
-			$scope.removeQuery = function($index)
-			{
-				$scope.query.splice($index,1);
+			$scope.removeQuery = function($index) {
+				$scope.query.splice($index, 1);
 				processList($scope.query);
 			}
 
 			function processList(query) {
-				console.log(query);
 				var uri = URI($scope.url).setQuery({});
 				uri.removeQuery(URI.parseQuery(uri.query()));
 				for (var i = 0; i < query.length;) {
@@ -84,7 +157,7 @@ RestMan.controller("MainCtrl", ["$scope",
 						query.splice(i, 1);
 					} else {
 						i++;
-						if(current.name)
+						if (current.name)
 							uri.addQuery(current.name, current.value);
 					}
 				}
@@ -104,16 +177,20 @@ RestMan.controller("MainCtrl", ["$scope",
 				}
 				$scope.query.push({});
 
-				$scope.protocol =  URI(url).protocol();
-				$scope.host = URI(url).hostname();
+				$scope.protocol = uri.protocol();
+				$scope.host = uri.hostname();
+				$scope.path = uri.path();
 			}
-			function processProtocol(protocol)
-			{
+
+			function processProtocol(protocol) {
 				$scope.url = URI($scope.url).protocol(protocol).toString();
 			}
-			function processHost(host)
-			{
+
+			function processHost(host) {
 				$scope.url = URI($scope.url).hostname(host).toString();
+			}
+			function processPath(path){
+				$scope.url = URI($scope.url).path(path).toString();
 			}
 		})();
 
@@ -123,18 +200,7 @@ RestMan.controller("MainCtrl", ["$scope",
 		$scope.headers = [1, 2, 3, 4];
 		$scope.url = "http://www.google.com";
 
-		function query() {
-			$.ajax({
-				url: $scope.url,
-				type: $scope.method,
-				complete: function(xhr, status) {
-					console.log(xhr);
-					console.log(status);
-					$scope.headers = getHeaders(xhr);
-					$scope.$apply();
-				}
-			});
-		}
+
 
 		function getHeaders(xhr) {
 			var headersRegex = /^(.*?):[ \t]*([^\r\n]*)$/mg;
