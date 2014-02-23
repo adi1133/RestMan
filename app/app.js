@@ -1,93 +1,64 @@
-var RestMan = angular.module("RestMan", ["ui.bootstrap", "ui.sortable"]);
-RestMan.controller("MainCtrl", ["$scope",
-	function($scope) {
+var RestMan = angular.module("RestMan", ["ui.bootstrap", "ui.sortable", "ui.codemirror"]);
+RestMan.controller("MainCtrl", ["$scope", "xhr",
+	function($scope, xhr) {
+
+
+
 		$scope.manifest = chrome.runtime.getManifest();
 
 		$scope.list = ["one", "two", "thre", "four", "five", "six"];
 
 		$scope.method = "HEAD";
 
-		$scope.status = {
-			busy: false,
-			loaded: 0,
-			total: 0,
-			code: 0,
-			action: "none"
-		};
+		$scope.status = xhr.getStatus();
 
-		(function() {
-			var xhr;
-			$scope.action = function() {
-				if (xhr)
-					setTimeout(function() {
-						xhr.abort()
-					}, 0);
-				else
-					start();
-			}
-
-			function start() {
-				xhr = new XMLHttpRequest();
-				xhr.open($scope.method, $scope.url);
-
-				xhr.onloadstart = function(event){
-					$scope.status.busy = true;
-					$scope.status.action = "started";
-				}
-
-				xhr.onprogress = function(event) {
-					$scope.status.loaded = event.loaded;
-					if (event.lengthComputable) {
-						$scope.status.total = event.total;
-					} else {
-						$scope.status.total = 0;
+		$scope.$watch("status.response", function(response) {
+			if (response == null) {
+				$scope.response = null
+			} else {
+				var reader = new FileReader();
+				reader.onloadend = function() {
+					switch (response.type) {
+						case "text/html":
+						case "text/xml":
+							$scope.response = window.html_beautify(reader.result);
+							break;
+						case "text/css":
+							$scope.response = window.css_beautify(reader.result);
+							break;
+						case "text/javascript":
+						case "application/json":
+							$scope.response = window.js_beautify(reader.result);
+							break;
+						default:
+							$scope.response = reader.result;
 					}
-					$scope.status.code = xhr.status;
-					$scope.$apply();
 
-				}
-				xhr.onerror = function() {
-					$scope.status.action = "error";
-				}
-				xhr.onabort = function() {
-					$scope.status.action = "abort";
-				}
-				xhr.onload = function() {
-					$scope.status.action = "success";
-					$scope.headers = getHeaders(xhr);
-					if (xhr.response.length < 0.1 * 1024 * 1024)
-						$scope.response = xhr.response;
-					else
-						$scope.response = "too big";
-				}
-				xhr.ontimeout = function()
-				{
-					$scope.status = "timeout";
-				}
-				xhr.onloadend = function(event) {
-					$scope.status.busy = false;
-					$scope.status.code = xhr.status;
 					$scope.$apply();
-					xhr = undefined;
-				}
-				xhr.send();
+				};
+				reader.readAsText(response);
+				$scope.codemirrorOpts.mode = response.type;
 			}
-		})();
 
+		});
+
+		$scope.codemirrorOpts = {
+			lineNumbers: true,
+			readOnly: true
+		};
+		$scope.response = "ddaaaa!";
 
 		$scope.query = [{
 			name: "a",
 			value: "b"
-		}, {
-			name: "a",
-			value: "b"
-		}, {
-			name: "a",
-			value: "b"
-		}, {
-			name: "a",
-			value: "b"
 		}];
+
+		$scope.action = function() {
+			xhr.send({
+				method: $scope.method,
+				url: $scope.url
+			});
+		};
 
 		$scope.protocol = "http";
 		$scope.host = "www.google.ro";
@@ -138,7 +109,7 @@ RestMan.controller("MainCtrl", ["$scope",
 					if (!watchHost)
 						watchHost = $scope.$watch("host", processHost);
 				},
-				path: function(){
+				path: function() {
 					if (!watchPath)
 						watchPath = $scope.$watch("path", processPath);
 				}
@@ -189,32 +160,17 @@ RestMan.controller("MainCtrl", ["$scope",
 			function processHost(host) {
 				$scope.url = URI($scope.url).hostname(host).toString();
 			}
-			function processPath(path){
+
+			function processPath(path) {
 				$scope.url = URI($scope.url).path(path).toString();
 			}
 		})();
 
 
-
-		$scope.jquery = $().jquery;
-		$scope.headers = [1, 2, 3, 4];
+		$scope.headers = [];
 		$scope.url = "http://www.google.com";
 
 
-
-		function getHeaders(xhr) {
-			var headersRegex = /^(.*?):[ \t]*([^\r\n]*)$/mg;
-			var headersStr = xhr.getAllResponseHeaders();
-			var retObj = {};
-			if (!headersStr)
-				return retObj;
-			while (true) {
-				var match = headersRegex.exec(headersStr);
-				if (!match)
-					return retObj;
-				retObj[match[1].toLowerCase()] = match[2];
-			}
-		}
 
 	}
 ]);
