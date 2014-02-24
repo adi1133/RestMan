@@ -16,28 +16,43 @@ RestMan.controller("MainCtrl", ["$scope", "xhr",
 			if (response == null) {
 				$scope.response = null
 			} else {
-				var reader = new FileReader();
-				reader.onloadend = function() {
-					switch (response.type) {
-						case "text/html":
-						case "text/xml":
-							$scope.response = window.html_beautify(reader.result);
-							break;
-						case "text/css":
-							$scope.response = window.css_beautify(reader.result);
-							break;
-						case "text/javascript":
-						case "application/json":
-							$scope.response = window.js_beautify(reader.result);
-							break;
-						default:
-							$scope.response = reader.result;
-					}
+				// (function() {
+				// 	var reader = new FileReader();
+				// 	reader.onloadend = function() {
+				// 		switch (response.type) {
+				// 			case "text/html":
+				// 			case "text/xml":
+				// 				$scope.response = window.html_beautify(reader.result);
+				// 				break;
+				// 			case "text/css":
+				// 				$scope.response = window.css_beautify(reader.result);
+				// 				break;
+				// 			case "text/javascript":
+				// 			case "application/json":
+				// 				$scope.response = window.js_beautify(reader.result);
+				// 				break;
+				// 			default:
+				// 				$scope.response = reader.result;
+				// 		}
 
-					$scope.$apply();
-				};
-				reader.readAsText(response);
-				$scope.codemirrorOpts.mode = response.type;
+				// 		$scope.$apply();
+				// 	};
+				// 	reader.readAsText(response);
+				// 	$scope.codemirrorOpts.mode = response.type;
+				// })();
+
+
+				(function() {
+					var reader = new FileReader();
+					reader.onloadend = function() {
+						$("iframe").attr("src", reader.result);
+						//$scope.src = reader.result.toString();
+
+
+						//$scope.$apply();
+					};
+					reader.readAsDataURL(response);
+				})();
 			}
 
 		});
@@ -124,16 +139,21 @@ RestMan.controller("MainCtrl", ["$scope", "xhr",
 				uri.removeQuery(URI.parseQuery(uri.query()));
 				for (var i = 0; i < query.length;) {
 					var current = query[i];
-					if (!current.name && !current.value) {
+					if (!current.name && !current.value && i != query.length - 1) {
 						query.splice(i, 1);
 					} else {
 						i++;
 						if (current.name)
 							uri.addQuery(current.name, current.value);
+						if (i == query.length) {
+							if (current.name || current.value)
+								$scope.query.push({});
+							$scope.url = uri.toString();
+							return;
+						}
 					}
 				}
-				$scope.url = uri.toString();
-				query.push({});
+
 			}
 
 			function processUrl(url) {

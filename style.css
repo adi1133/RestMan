@@ -5,3 +5,7 @@ td.handle{
 html{
 	overflow: auto;
 }
+
+iframe{
+	width: 100%;
+}
