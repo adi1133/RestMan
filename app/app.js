@@ -45,7 +45,16 @@ RestMan.controller("MainCtrl", ["$scope", "xhr",
 				(function() {
 					var reader = new FileReader();
 					reader.onloadend = function() {
-						$("iframe").attr("src", reader.result);
+						var result = reader.result;
+						//fix content type
+						var contentType = $scope.status.headers["content-type"];
+						if(contentType)
+						{
+							var base64_delimiter = "base64,";
+							var base64 = result.substring(result.indexOf(base64_delimiter) + base64_delimiter.length);
+							result = "data:" + contentType + ";base64," + base64;
+						}						
+						$("iframe").attr("src", result);
 						//$scope.src = reader.result.toString();
 
 

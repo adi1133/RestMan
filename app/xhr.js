@@ -8,7 +8,8 @@ RestMan.factory("xhr", ["$rootScope",
 			code: 0,
 			codeDesc: "",
 			action: "none",
-			response: null
+			response: null,
+			headers: null
 		};
 		var xhr;
 
@@ -57,7 +58,7 @@ RestMan.factory("xhr", ["$rootScope",
 			}
 			xhr.onload = function() {
 				status.action = "success";
-				headers = getHeaders(xhr);
+				status.headers = getHeaders(xhr);
 				// if (xhr.response.length < 0.1 * 1024 * 1024)
 				// 	$scope.response = xhr.response;
 				// else
