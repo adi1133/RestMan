@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html ng-app="RestMan" ng-csp>
+<head>
+	<link rel="stylesheet" type="text/css" href="style.css">
+	<link rel="stylesheet" type="text/css" href="bower_components/bootstrap-css-only/css/bootstrap.min.css">
+
+	<link rel="stylesheet" type="text/css" href="bower_components/codemirror/lib/codemirror.css">
+	<script src="bower_components/jquery/dist/jquery.min.js"></script>
+	<script src="bower_components/jquery-ui/ui/minified/jquery-ui.min.js"></script>
+
+	<script src="bower_components/codemirror/lib/codemirror.js"></script>
+	<script src="bower_components/codemirror/mode/xml/xml.js"></script>
+	<script src="bower_components/codemirror/mode/javascript/javascript.js"></script>
+	<script src="bower_components/codemirror/mode/css/css.js"></script>
+	<script src="bower_components/codemirror/mode/htmlmixed/htmlmixed.js"></script>
+
+	
+	<script src="bower_components/js-beautify/js/lib/beautify-css.js"></script>
+	<script src="bower_components/js-beautify/js/lib/beautify-html.js"></script>
+	<script src="bower_components/js-beautify/js/lib/beautify.js"></script>
+	
+
+	<script src="bower_components/URIjs/src/URI.js"></script>
+
+	<script src="bower_components/angular/angular.min.js"></script>
+	<script src="bower_components/angular-route/angular-route.min.js"></script>
+	<script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>
+	<script src="bower_components/angular-ui-sortable/sortable.min.js"></script>
+	<script src="bower_components/angular-ui-codemirror/ui-codemirror.min.js"></script>
+	<script src="app/app.js"></script>
+	<script src="app/MainCtrl.js"></script>
+	<script src="app/xhr.js"></script>
+</head>
+<body ng-view>
+	<div class="navbar navbar-default" role="navigation">
+		<div class="container">
+			<div class="navbar-header">
+				<a class="navbar-brand" href="{{manifest.author.website}}" target="_blank">{{manifest.name}}</a>
+				<p class="navbar-text">{{manifest.version}}</p>
+			</div>
+		</div>
+	</div>
+	<div class="container">		
+
+		
+		<h1>Test</h1>
+		<iframe sandbox=""></iframe>
+
+		<div class="input-group">
+			<span class="input-group-addon">Url</span>
+			<input type="text" ng-model="url" class="form-control" ng-focus="focus.url()">
+			<span class="input-group-btn">
+				<button class="btn" ng-class="status.busy ?'btn-danger':'btn-primary'" ng-click="action()">{{status.busy ? "Cancel" : "Send!"}}</button>
+			</span>
+		</div>
+
+
+		<div class="input-group">
+			<span class="input-group-addon">Method</span>
+			<select ng-model="method" class="form-control" >
+				<option>GET</option>
+				<option>POST</option>
+				<option>HEAD</option>
+				<option>PUT</option>
+				<option>DELETE</option>
+				<option>OPTIONS</option>
+				<option>PATCH</option>
+			</select>
+		</div>
+
+		<div class="input-group">
+			<span class="input-group-addon">Protocol</span>
+			<select ng-model="protocol" class="form-control" ng-focus="focus.protocol()">
+				<option>http</option>
+				<option>https</option>
+			</select>
+		</div>
+
+		<div class="input-group">
+			<span class="input-group-addon">Domain</span>
+			<input type="text" ng-model="host" class="form-control" ng-focus="focus.host()"> 
+		</div>
+
+		<div class="input-group">
+			<span class="input-group-addon">Path</span>
+			<input type="text" ng-model="path" class="form-control" ng-focus="focus.path()"> 
+		</div>
+
+		<hr>
+		<div ng-switch="status.busy">
+			<div ng-switch-when="true">
+				<div ng-switch="status.total">
+					<div ng-switch-when="0">
+						<progressbar class="progress-striped active" type="warning" value="1" max="1"></progressbar>
+					</div>
+					<div ng-switch-default>
+						<progressbar class="progress-striped active" type="info" value="status.loaded" max="status.total"></progressbar>						
+					</div>
+			    </div>				
+			</div>
+			<div ng-switch-default>
+				<progressbar type="success" value="1" max="1" animate ="false"><i>200</i></progressbar>						
+			</div>
+	    </div>	    
+		<hr>
+
+		<textarea readonly class="form-control" style="height: 155px;">{{status | json}}</textarea>
+
+		<hr>
+		<table class="table table-condensed">
+			<thead>
+				<tr>
+					<th>Key</th>
+					<th>Value</th>
+				</tr>
+			</thead>
+			<tbody ui-sortable="{handle: '.handle'}" ng-model="query">
+				<tr ng-repeat="parameter in query" class="item">
+					<td><input type="text" ng-model="parameter.name"  class="form-control" ng-focus="focus.query()"></td>
+					<td><input type="text" ng-model="parameter.value" class="form-control" ng-focus="focus.query()"></td>
+					<td ng-click="removeQuery($index)">remove</td>
+					<td class="handle">handle</td>
+				</tr>
+			</tbody>
+		</table>
+		<hr>
+
+
+		<textarea ui-codemirror="codemirrorOpts" ng-model = "response" ></textarea>
+
+		<table class="table table-striped table-condensed table-hover">
+
+			<tr ng-repeat="(header, value) in headers">
+				<td><a popover="On the Top!" popover-trigger="mouseenter">{{header}}</a></td>
+				<td>{{value}}</td>
+			</tr>
+		</table>
+	</div>
+</body>
+</html>
+
+

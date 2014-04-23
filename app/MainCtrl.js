@@ -203,3 +203,8 @@ RestMan.controller("MainCtrl", ["$scope", "xhr",
 
 	}
 ]);
+
+RestMan.controller("QueryCtrl", ["$scope", "$routeParams",
+	function($scope, $routeParams) {
+		$scope.data = $routeParams.data;
+	}]);
